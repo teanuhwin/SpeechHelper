@@ -1,4 +1,4 @@
-var CACHE="phrases-v1";
+var CACHE="phrases-v2";
 var FILES=["./","./index.html","./manifest.webmanifest","./icon-192.png","./icon-512.png"];
 self.addEventListener("install",function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(FILES)}).then(function(){return self.skipWaiting()}));
@@ -13,7 +13,7 @@ self.addEventListener("fetch",function(e){
   var u=new URL(e.request.url);
   if(u.origin!==location.origin)return; /* fonts etc. use the network; the page falls back to system fonts offline */
   e.respondWith(
-    fetch(e.request).then(function(r){
+    fetch(e.request,{cache:"no-cache"}).then(function(r){
       var copy=r.clone();caches.open(CACHE).then(function(c){c.put(e.request,copy)});return r;
     }).catch(function(){return caches.match(e.request).then(function(m){return m||caches.match("./index.html")})})
   );
