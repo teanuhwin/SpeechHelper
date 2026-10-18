@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hospital phrases</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b7a5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Phrases">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f8f9;--card:#fff;--ink:#12242b;--mute:#566a72;--line:#cfdce1;--en:#2457b5;--na:#0b7a5c;--rec:#c8372d;--on:#fff;--sel:#12242b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a1f;--card:#16272e;--ink:#eaf2f4;--mute:#9db3bb;--line:#2a414a;--en:#7aa5f2;--na:#4cc9a1;--rec:#ff7a6e;--on:#0e1a1f;--sel:#eaf2f4}}
+:root[data-theme="dark"]{--bg:#0e1a1f;--card:#16272e;--ink:#eaf2f4;--mute:#9db3bb;--line:#2a414a;--en:#7aa5f2;--na:#4cc9a1;--rec:#ff7a6e;--on:#0e1a1f;--sel:#eaf2f4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 18px/1.35 "Atkinson Hyperlegible",system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:14px 14px 40px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+h1{font-size:26px;margin:0}
+.seg{display:flex;border:2px solid var(--ink);border-radius:14px;overflow:hidden}
+.seg button{font-weight:700;font-size:18px;font-family:inherit;border:0;background:transparent;color:var(--ink);padding:14px 20px;min-height:56px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--sel);color:var(--bg)}
+.tabs{margin:18px 0 12px;display:flex;gap:8px;flex-wrap:wrap}
+.tabs .seg{flex:1;min-width:0}
+.tabs .seg button{flex:1;padding:14px 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.pin{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.top{display:flex;align-items:center;gap:12px}
+.ic{font-size:44px;line-height:1}
+.tx{font-size:23px;font-weight:700}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.b{font-weight:700;font-size:19px;font-family:inherit;min-height:76px;border:0;border-radius:14px;color:var(--on);cursor:pointer;padding:8px}
+.b.en{background:var(--en)}.b.na{background:var(--na)}.b.rec{background:var(--rec)}
+.b.re{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+.b[disabled]{opacity:.35;cursor:default}
+.b.on{outline:4px solid var(--ink);outline-offset:2px}
+.b.live{animation:p 1s infinite}
+@keyframes p{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.b.live{animation:none}}
+.b:focus-visible,.seg button:focus-visible,input:focus-visible,select:focus-visible{outline:4px solid var(--ink);outline-offset:2px}
+.nativecell{display:grid;gap:8px}
+.add{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.add input,.add select{font:inherit;font-size:19px;min-height:56px;padding:0 12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+.add input{flex:1;min-width:200px}
+.msg{min-height:26px;margin:10px 0 0;color:var(--mute)}
+.hint{color:var(--mute);font-size:16px;margin:6px 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>Hospital phrases</h1>
+<div class="seg" role="group" aria-label="Mode">
+<button id="mUse" aria-pressed="true">Use</button>
+<button id="mSet" aria-pressed="false">Setup</button>
+</div>
+</header>
+<div id="pin" class="grid pin"></div>
+<div class="tabs"><div class="seg" id="tabs" role="group" aria-label="Categories"></div></div>
+<div id="grid" class="grid"></div>
+<div id="add" class="add" hidden>
+<input id="newText" placeholder="New phrase in English" aria-label="New phrase in English">
+<select id="newIcon" aria-label="Icon"><option>💬</option><option>🩺</option><option>💊</option><option>🛏️</option><option>🚿</option><option>🍽️</option><option>🧣</option><option>📞</option></select>
+<button class="b en" id="addBtn" style="min-height:56px;padding:0 20px">Add phrase</button>
+</div>
+<input type="file" id="fileIn" accept="audio/*" capture hidden aria-hidden="true" tabindex="-1">
+<p class="msg" id="msg" role="status" aria-live="polite"></p>
+<p class="hint" id="hint"></p>
+</div>
+<script>
+var BASE={
+pinned:[{id:"hello",i:"👋",t:"Hello"},{id:"dont-understand",i:"❓",t:"I don’t understand"}],
+yn:[{id:"yes",i:"✅",t:"Yes / Good"},{id:"no",i:"❌",t:"No / Bad"},{id:"dk",i:"🤷",t:"I don’t know"}],
+pain:[{id:"in-pain",i:"😣",t:"Are you in pain?"},{id:"where",i:"👆",t:"Where does it hurt?"},{id:"amount",i:"📏",t:"A little / A lot"},{id:"worse",i:"📈",t:"Is the pain getting worse?"},{id:"breath",i:"😮‍💨",t:"Breathing trouble"},{id:"dizzy",i:"😵‍💫",t:"Dizzy / Nausea / Vomiting"}],
+needs:[{id:"bathroom",i:"🚻",t:"Bathroom"},{id:"water",i:"💧",t:"Water"},{id:"food",i:"🍚",t:"Food"},{id:"temp",i:"🌡️",t:"I’m cold / I’m hot"},{id:"blood",i:"🩸",t:"Blood draw"},{id:"meds",i:"💊",t:"Medicine"},{id:"nurse",i:"🧑‍⚕️",t:"Need a nurse"}]};
+var TABS=[["yn","Yes/No"],["pain","Pain & Symptoms"],["needs","Needs"]];
+var tab="yn",setup=false,recs={},custom=[],cur=null,curUrl=null,rec=null,starting=false,recT=null,db=null,fallbackId=null,fileFor=null,delArm=null;
+var $=function(s){return document.getElementById(s)};
+function say(m){$("msg").textContent=m||""}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+try{custom=JSON.parse(localStorage.getItem("custom")||"[]")}catch(e){custom=[]}
+function saveCustom(){try{localStorage.setItem("custom",JSON.stringify(custom))}catch(e){say("Could not save your custom phrases on this browser.")}}
+function openDB(cb){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});var r=indexedDB.open("phrases",1);r.onupgradeneeded=function(){r.result.createObjectStore("rec")};r.onsuccess=function(){db=r.result;cb()};r.onerror=function(){cb()};r.onblocked=function(){cb()}}catch(e){cb()}}
+function loadAll(cb){if(!db)return cb();try{var c=db.transaction("rec").objectStore("rec").openCursor();c.onsuccess=function(){var x=c.result;if(x){recs[x.key]=x.value;x.continue()}else cb()};c.onerror=function(){cb()}}catch(e){cb()}}
+function putRec(id,blob){recs[id]=blob;if(!db){say("Saved for this visit only. This browser is not allowing storage.");return}try{var tx=db.transaction("rec","readwrite");tx.objectStore("rec").put(blob,id);tx.onerror=tx.onabort=function(){say("Could not save to this device. The recording will be lost when you close the page.")}}catch(e){say("Could not save to this device.")}}
+function delRec(id){delete recs[id];if(db)try{db.transaction("rec","readwrite").objectStore("rec").delete(id)}catch(e){}}
+function list(){return BASE[tab].concat(custom.filter(function(c){return c.tab===tab}))}
+function card(p){
+var has=!!recs[p.id],isRec=rec&&rec.id===p.id,n,x="",T=esc(p.t);
+if(setup){
+n=isRec?'<button class="b rec live" data-a="stop" aria-label="Stop recording">■ Stop</button>':has?'<button class="b na" data-a="play" data-id="'+p.id+'" aria-label="Play native: '+T+'">▶ Native</button>':'<button class="b rec" data-a="rec" data-id="'+p.id+'" aria-label="Record native: '+T+'">● Record</button>';
+if(has&&!isRec)n='<div class="nativecell">'+n+'<button class="b re" data-a="rec" data-id="'+p.id+'" aria-label="Re-record: '+T+'" style="min-height:52px;font-size:17px">Re-record</button></div>';
+if(fallbackId===p.id)x+='<button class="b re" data-a="file" data-id="'+p.id+'" style="min-height:56px;font-size:17px">Record with phone’s recorder app</button>';
+if(p.c)x+='<button class="b re" data-a="del" data-id="'+p.id+'" style="min-height:48px;font-size:16px">'+(delArm===p.id?'Tap again to delete':'Delete phrase')+'</button>';
+}else{n='<button class="b na" data-a="play" data-id="'+p.id+'"'+(has?' aria-label="Play native: '+T+'"':' disabled aria-label="No native recording for '+T+'"')+'>'+(has?'▶ Native':'No recording')+'</button>'}
+return '<div class="card"><div class="top"><span class="ic" aria-hidden="true">'+p.i+'</span><span class="tx">'+T+'</span></div><div class="btns"><button class="b en" data-a="say" data-t="'+T+'" aria-label="Play English: '+T+'">▶ English</button>'+n+'</div>'+x+'</div>'}
+function render(){
+$("pin").innerHTML=BASE.pinned.map(card).join("");
+$("tabs").innerHTML=TABS.map(function(t){return '<button data-tab="'+t[0]+'" aria-pressed="'+(t[0]===tab)+'">'+t[1]+'</button>'}).join("");
+$("grid").innerHTML=list().map(card).join("");
+$("mUse").setAttribute("aria-pressed",String(!setup));$("mSet").setAttribute("aria-pressed",String(setup));
+$("add").hidden=!setup;
+$("hint").textContent=setup?"Setup: tap Record, say the phrase, tap Stop. Recordings stay on this device.":"Tap English or Native to hear a phrase.";
+}
+function stopAudio(){if(cur){cur.pause();cur=null}if(curUrl){URL.revokeObjectURL(curUrl);curUrl=null}try{speechSynthesis.cancel()}catch(e){}document.querySelectorAll(".on").forEach(function(b){b.classList.remove("on")})}
+function playBlob(id,btn){stopAudio();curUrl=URL.createObjectURL(recs[id]);var a=new Audio(curUrl);cur=a;btn.classList.add("on");a.onended=function(){btn.classList.remove("on")};a.play().catch(function(){btn.classList.remove("on");say("Could not play this recording. Try re-recording it.")})}
+function speak(t,btn){stopAudio();try{var u=new SpeechSynthesisUtterance(t.replace(/\s*\/\s*/g,". "));u.lang="en-US";u.rate=.9;btn.classList.add("on");u.onend=u.onerror=function(){btn.classList.remove("on")};speechSynthesis.speak(u)}catch(e){say("English audio is not available on this browser.")}}
+function stopRec(){if(rec&&rec.mr.state==="recording")rec.mr.stop()}
+function offerFallback(id,m){starting=false;fallbackId=id;render();say(m)}
+function startRec(id){
+if(starting)return;if(rec){stopRec();return}
+stopAudio();say("");
+if(!navigator.mediaDevices||!window.MediaRecorder||!window.isSecureContext){offerFallback(id,"This page can’t record directly here. Use your phone’s recorder app instead.");return}
+starting=true;
+navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
+var mt="";["audio/webm;codecs=opus","audio/mp4"].forEach(function(t){if(!mt&&MediaRecorder.isTypeSupported(t))mt=t});
+var mr,ch=[];try{mr=mt?new MediaRecorder(s,{mimeType:mt}):new MediaRecorder(s)}catch(e){s.getTracks().forEach(function(t){t.stop()});offerFallback(id,"Recording failed to start. Use your phone’s recorder app instead.");return}
+mr.ondataavailable=function(e){if(e.data&&e.data.size)ch.push(e.data)};
+mr.onstop=function(){clearTimeout(recT);s.getTracks().forEach(function(t){t.stop()});rec=null;var b=new Blob(ch,{type:mr.mimeType||mt||"audio/webm"});
+if(b.size<200){say("Nothing was recorded. Try again and speak after tapping Record.")}else{fallbackId=null;putRec(id,b);say("Saved. Tap Native to check it, or Re-record.")}render()};
+starting=false;rec={id:id,mr:mr};mr.start();render();say("Recording… tap Stop when finished (stops by itself at 10 seconds).");
+recT=setTimeout(stopRec,10000);
+}).catch(function(){offerFallback(id,"Microphone is blocked. Allow microphone access in your browser settings, open this page in its own tab, or use your phone’s recorder app below.")})}
+document.addEventListener("click",function(e){
+var b=e.target.closest("button");if(!b)return;
+if(b.dataset.tab){stopRec();stopAudio();tab=b.dataset.tab;delArm=null;render();return}
+var a=b.dataset.a,id=b.dataset.id;
+if(a==="say")speak(b.dataset.t.replace(/&#39;/g,"'"),b);
+else if(a==="play"&&recs[id])playBlob(id,b);
+else if(a==="rec")startRec(id);
+else if(a==="stop")stopRec();
+else if(a==="file"){fileFor=id;$("fileIn").click()}
+else if(a==="del"){if(delArm===id){custom=custom.filter(function(c){return c.id!==id});saveCustom();delRec(id);delArm=null;say("Phrase deleted.")}else delArm=id;render()}
+});
+$("fileIn").onchange=function(){var f=this.files&&this.files[0];this.value="";if(!f||!fileFor)return;putRec(fileFor,f);fallbackId=null;say("Saved. Tap Native to check it.");render()};
+$("mUse").onclick=function(){stopRec();stopAudio();setup=false;delArm=null;render()};
+$("mSet").onclick=function(){stopAudio();setup=true;render()};
+$("addBtn").onclick=function(){var t=$("newText").value.trim();if(!t)return say("Type the phrase first.");if(t.length>80)return say("Keep it under 80 characters.");custom.push({id:"c"+Date.now(),i:$("newIcon").value,t:t,tab:tab,c:1});saveCustom();$("newText").value="";say("Phrase added to this tab.");render()};
+$("newText").addEventListener("keydown",function(e){if(e.key==="Enter")$("addBtn").click()});
+function wake(){try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(function(){})}catch(e){}}
+document.addEventListener("visibilitychange",function(){if(document.hidden){stopRec();stopAudio()}else wake()});
+wake();
+if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+openDB(function(){loadAll(render)});
+render();
+</script>
+</body>
+</html>
